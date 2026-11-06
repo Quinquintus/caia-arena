@@ -1,2 +1,5 @@
-// Configuration Firebase (Realtime Database). Collez ici la config de votre projet.
-window.FIREBASE_CONFIG = null;
+// Configuration Firebase Realtime Database (multijoueur)
+window.FIREBASE_CONFIG = {
+  projectId: "caia-arena",
+  databaseURL: "https://caia-arena-default-rtdb.europe-west1.firebasedatabase.app"
+};

@@ -243,7 +243,7 @@ function makeDb(fdb){
 function initPlatform(){
   try{
     const cfg=window.FIREBASE_CONFIG;
-    if(window.firebase && cfg && cfg.apiKey && cfg.databaseURL){
+    if(window.firebase && cfg && cfg.databaseURL){
       firebase.initializeApp(cfg);
       P.fb=firebase.database(); P.db=makeDb(P.fb);
       P.fb.ref('.info/serverTimeOffset').on('value',s=>{P.off=s.val()||0});
