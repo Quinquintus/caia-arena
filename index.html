@@ -117,7 +117,40 @@ input,select{font:inherit}
 .rev .o{font-size:14px;padding:6px 10px;border-radius:8px;margin:4px 0;background:var(--bg2);color:var(--mute)}
 .rev .o.c{background:rgba(33,192,122,.15);color:#bff5d9}
 .rev .o.x{background:rgba(255,90,110,.15);color:#ffc2ca}
-.podium{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:20px 0 10px}
+.podium{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:20px 0 10px;min-height:300px}
+.pod .pwho{animation:fadeUp .6s cubic-bezier(.2,.8,.2,1) both;animation-delay:calc(var(--d) + .6s)}
+.pod .blk{transform-origin:bottom;animation:rise .8s cubic-bezier(.2,.9,.3,1.2) both;animation-delay:var(--d)}
+.pod.first .pwho .av{animation:winner 1.6s ease-in-out infinite;animation-delay:calc(var(--d) + 1.4s)}
+@keyframes rise{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes winner{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-8px) rotate(-6deg)}75%{transform:translateY(-8px) rotate(6deg)}}
+.reveal-late{animation:fadeUp .7s both;animation-delay:var(--d)}
+.drum{font-family:"Space Grotesk",Inter,system-ui,sans-serif;color:var(--mute);font-size:18px;min-height:26px}
+.av{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:50%;font-size:20px;flex:0 0 auto;line-height:1}
+.av.big{width:64px;height:64px;font-size:38px;margin:0 auto 6px;box-shadow:0 6px 18px rgba(0,0,0,.35)}
+.av.md{width:44px;height:44px;font-size:26px}
+.avgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(46px,1fr));gap:8px;max-width:520px}
+.avbtn{background:var(--bg2);border:2px solid var(--line);border-radius:14px;font-size:26px;height:46px;transition:transform .12s,border-color .12s}
+.avbtn:hover{transform:scale(1.12) rotate(-4deg)}
+.avbtn.on{border-color:var(--acc);background:rgba(124,92,255,.25);transform:scale(1.08)}
+.pchip{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:96px}
+.pchip.new{animation:bounceIn .6s cubic-bezier(.2,.9,.3,1.4)}
+.pchip .av{animation:bob 2.4s ease-in-out infinite}
+@keyframes bounceIn{0%{transform:scale(.3);opacity:0}60%{transform:scale(1.12);opacity:1}100%{transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.lbrow{grid-template-columns:22px 34px minmax(0,1fr) auto}
+.opt.sel{animation:press .25s ease}
+@keyframes press{50%{transform:scale(.96)}}
+.opt.right{animation:glow 1s ease 2}
+@keyframes glow{50%{box-shadow:0 0 0 8px rgba(33,192,122,.55)}}
+.opt.wrong{animation:shake .45s ease}
+@keyframes shake{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.verdict{animation:fadeUp .5s both}
+.ptsfly{display:inline-block;margin-left:10px;color:var(--ok);animation:fly 1.4s ease both}
+@keyframes fly{0%{opacity:0;transform:translateY(14px) scale(.6)}30%{opacity:1;transform:translateY(-4px) scale(1.25)}100%{opacity:1;transform:none}}
+#cd{animation:tickPulse 1s ease infinite}
+@keyframes tickPulse{0%{transform:scale(1.25)}100%{transform:scale(1)}}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:20}
 .pod{text-align:center;width:150px}
 .pod .blk{border-radius:12px 12px 0 0;display:grid;place-items:center;font-family:"Space Grotesk",Inter,system-ui,sans-serif;font-weight:700;font-size:30px;margin-top:8px}
 .pod .p1{height:130px;background:linear-gradient(#ffd34d,#d49b00)}
@@ -170,6 +203,22 @@ const KLABEL = {c:'Concept', a:'Application', n:'Calcul'};
 const REVEAL_MS = 8000;                       // reveal pause in synchronized mode
 const BYID = Object.fromEntries(BANK.map(q=>[q.id,q]));
 const LETTERS = ['A','B','C','D'];
+const AVATARS = ['🦊','🐼','🐯','🦁','🐸','🐙','🦉','🐧','🐨','🐵','🦄','🐲','🐳','🦈','🐝','🦋','🐢','🐺','🦖','🐰','🐻','🐷','🐮','🦜','🦩','🐬','🦔','🐹','🚀','💎','📈','🎯','🧠','👑','⚡','🔥'];
+const AVBG = ['#e5484d','#3e7bfa','#f5a524','#20b26b','#8e4ec6','#12a594','#d6409f','#f76b15','#0090ff','#6e56cf'];
+function avColor(id){ return AVBG[hashStr(String(id||'x'))%AVBG.length]; }
+function avHtml(p,cls=''){ return `<span class="av ${cls}" style="background:${avColor(p.id||p.pid||p.name)}">${esc(p.avatar||'🙂')}</span>`; }
+function avatarPicker(){ return `<div class="field"><label>Ton avatar</label><div class="avgrid">${AVATARS.map(a=>`<button class="avbtn ${a===S.avatar?'on':''}" data-av="${a}" title="Choisir">${a}</button>`).join('')}</div></div>`; }
+function confetti(ms=3500){
+  try{ let c=document.getElementById('confetti'); if(!c){ c=document.createElement('canvas'); c.id='confetti'; document.body.appendChild(c); }
+    const ctx=c.getContext('2d'); c.width=innerWidth; c.height=innerHeight;
+    const cols=['#7c5cff','#21c07a','#f5a524','#e5484d','#3e7bfa','#ffd34d','#ffffff'];
+    const P=[...Array(180)].map(()=>({x:c.width/2+(Math.random()-.5)*200,y:c.height*0.35,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:Math.random()*6+4,c:cols[Math.floor(Math.random()*cols.length)],a:Math.random()*6,va:(Math.random()-.5)*.3}));
+    const t0=performance.now();
+    (function f(t){ const el=t-t0; ctx.clearRect(0,0,c.width,c.height);
+      P.forEach(p=>{ p.vy+=0.35; p.vx*=0.99; p.x+=p.vx; p.y+=p.vy; p.a+=p.va; ctx.save(); ctx.globalAlpha=Math.max(0,1-el/ms); ctx.translate(p.x,p.y); ctx.rotate(p.a); ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/4,p.r,p.r/2); ctx.restore(); });
+      if(el<ms) requestAnimationFrame(f); else ctx.clearRect(0,0,c.width,c.height); })(t0);
+  }catch(e){}
+}
 
 /* ---------------- Utilities ---------------- */
 const $ = s => document.querySelector(s);
@@ -254,7 +303,7 @@ function initPlatform(){
 }
 /* ---------------- App state ---------------- */
 const S = {
-  view:'home', name:lsGet('caia_name',''),
+  view:'home', name:lsGet('caia_name',''), avatar:lsGet('caia_avatar',null)||AVATARS[Math.floor(Math.random()*AVATARS.length)],
   // config
   cfg:{mode:'exam', minutes:30, topics:TOPICS.map(t=>t.id), pace:'sync', hostPlays:true},
   // solo
@@ -270,7 +319,7 @@ function confirm2(){ return true }
 
 /* ---------------- Rendering ---------------- */
 function render(){
-  $('#who').innerHTML = S.name ? `<span class="pill">👤 ${esc(S.name)}</span>` : '';
+  $('#who').innerHTML = S.name ? `<span class="pill">${esc(S.avatar)} ${esc(S.name)}</span>` : '';
   const v=S.view, app=$('#app');
   if(v==='home') app.innerHTML=viewHome();
   else if(v==='setup') app.innerHTML=viewSetup();
@@ -286,7 +335,7 @@ function render(){
 }
 
 function nameField(){
-  return `<div class="field"><label>Ton nom</label><input class="inp" id="nameInp" maxlength="24" placeholder="Ex. Nicolas" value="${esc(S.name)}"></div>`;
+  return `<div class="field"><label>Ton nom</label><input class="inp" id="nameInp" maxlength="24" placeholder="Ex. Nicolas" value="${esc(S.name)}"></div>`+avatarPicker();
 }
 
 function viewHome(){
@@ -296,7 +345,7 @@ function viewHome(){
     <h1>Entraîne-toi au CAIA Level I,<br>seul ou à plusieurs.</h1>
     <p>Examens blancs de 30 minutes pondérés comme le vrai examen, chrono adapté à chaque question (75 s pour un concept, jusqu'à 2 min 30 pour un calcul), et classement en direct quand vous jouez à plusieurs.</p>
   </div>
-  <div class="card mb" style="max-width:460px">${nameField()}<div class="hint">Ton nom s'affiche dans le classement des parties multijoueur.</div></div>
+  <div class="card mb" style="max-width:580px">${nameField()}<div class="hint">Ton nom s'affiche dans le classement des parties multijoueur.</div></div>
   <div class="grid3">
     <div class="card mode" data-go="solo"><div class="ic">🎯</div><h3>Jouer en solo</h3><p>Examen blanc chronométré ou mode entraînement avec la correction après chaque question.</p></div>
     <div class="card mode" data-go="host"><div class="ic">🎮</div><h3>Créer une partie</h3><p>Lance une session multijoueur avec un code, choisis le rythme et suis les résultats en direct.</p></div>
@@ -468,8 +517,8 @@ async function joinSession(){
 async function joinAsPlayer(){
   const m=S.mp; const ref=P.db.doc(`sessions/${m.code}/players/${pid}`);
   const ex=await ref.get().catch(()=>null);
-  if(ex&&ex.exists){ const d=ex.data(); m.local={answers:d.answers||{},score:d.score||0}; m.writeMode='db'; queueWrite(()=>ref.update({name:S.name,online:true})); setOnline(); return; }
-  const doc={name:S.name,pid,joinedAt:NOW(),answers:{},score:0,nCorrect:0,nAnswered:0,done:false,online:true};
+  if(ex&&ex.exists){ const d=ex.data(); m.local={answers:d.answers||{},score:d.score||0}; m.writeMode='db'; queueWrite(()=>ref.update({name:S.name,avatar:S.avatar,online:true})); setOnline(); return; }
+  const doc={name:S.name,avatar:S.avatar,pid,joinedAt:NOW(),answers:{},score:0,nCorrect:0,nAnswered:0,done:false,online:true};
   m.local={answers:{},score:0};
   try{ await ref.set(doc); m.writeMode='db'; }
   catch(e){ m.writeMode='none'; toast("Impossible d'enregistrer ta participation. Vérifie ta connexion.",4500); }
@@ -498,7 +547,7 @@ function allPlayers(){
 function onPlayersChanged(){
   if(S.view==='lobby') renderLobbyList();
   else if(S.view==='game'){ renderLB(); hostAutoCut(); if(S.mp.session.pace==='sync') updateDist(); maybeFinish(); }
-  else if(S.view==='final') render();
+  else if(S.view==='final'){ const ft=$('#finalTable'); if(ft) ft.innerHTML=finalTableHtml(); }
 }
 
 /* Timeline for synchronized mode */
@@ -573,7 +622,8 @@ function viewLobby(){
 }
 function renderLobbyList(){
   const el=$('#plist'); if(!el) return; const ps=allPlayers().sort((a,b)=>(a.joinedAt||0)-(b.joinedAt||0));
-  el.innerHTML=ps.length?ps.map(p=>`<div class="pchip">${p.id===pid?'⭐ ':''}${esc(p.name)}</div>`).join(''):'<span class="hint">Personne pour l\'instant…</span>';
+  const seen=renderLobbyList.seen||(renderLobbyList.seen=new Set());
+  el.innerHTML=ps.length?ps.map(p=>{ const isNew=!seen.has(p.id); seen.add(p.id); return `<div class="pchip ${isNew?'new':''}">${avHtml(p,'md')}<span>${esc(p.name)}${p.id===pid?' ⭐':''}</span></div>`}).join(''):'<span class="hint">Personne pour l\'instant…</span>';
   const c=$('#pcount'); if(c) c.textContent='('+ps.length+')';
 }
 
@@ -597,7 +647,7 @@ function gameMain(){
       return qCard({q,order,idx:i,n:s.qids.length,remain,dur,chosen:a?a.c:null,locked:!!a,reveal:false,extra});
     }
     const dist=distFor(i);
-    const extra=`<div class="verdict ${a&&a.ok?'ok':'bad'}">${a?(a.ok?`✓ Bonne réponse ! +${a.pts} pts`:'✗ Mauvaise réponse'):'⏱ Pas de réponse'}</div><div class="expl">${esc(q.e)}</div><div class="hint mt" id="nextIn"></div>`;
+    const extra=`<div class="verdict ${a&&a.ok?'ok':'bad'}">${a?(a.ok?`✓ Bonne réponse !<span class="ptsfly">+${a.pts} pts</span>`:'✗ Mauvaise réponse'):'⏱ Pas de réponse'}</div><div class="expl">${esc(q.e)}</div><div class="hint mt" id="nextIn"></div>`;
     return qCard({q,order,idx:i,n:s.qids.length,remain:0,dur,chosen:a?a.c:null,locked:true,reveal:true,dist,extra});
   }
   // self-paced
@@ -626,15 +676,30 @@ function lbHtml(){
   const rows=ps.map((p,k)=>{
     const a=p.answers||{}; const strip=[...Array(n).keys()].map(i=>{const x=a[i];return `<i class="${x?(x.ok?'g':'r'):''}${i===cur?' c':''}"></i>`}).join('');
     const answeredNow = cur>=0 && a[cur] ? '<span class="ans">a répondu</span>':'';
-    return `<div class="lbrow ${p.id===pid?'me':''}"><div class="rk">${k+1}</div><div style="min-width:0"><div class="nm">${esc(p.name)}${p.id===pid?' (toi)':''}${answeredNow}</div>
+    return `<div class="lbrow ${p.id===pid?'me':''}" data-id="${esc(p.id)}" data-sc="${p.score||0}"><div class="rk">${k+1}</div>${avHtml(p)}<div style="min-width:0"><div class="nm">${esc(p.name)}${p.id===pid?' (toi)':''}${answeredNow}</div>
       <div class="sub">${p.nCorrect||0} bonnes · ${p.nAnswered||0}/${n} répondues${p.done?' · ✅ fini':''}${p.online===false?' · ⚪ hors ligne':''}</div><div class="strip">${strip}</div></div><div class="sc">${p.score||0}</div></div>`}).join('');
   return `<h3><span class="live"></span> Classement en direct</h3><div class="sub" style="margin-bottom:6px">${ps.length} joueur${ps.length>1?'s':''} · code ${esc(m.code)}</div>${rows||'<div class="hint">Aucun joueur</div>'}`;
 }
-function renderLB(){ const el=$('#lbBox'); if(el) el.innerHTML=lbHtml(); const h=$('#heat'); if(h) h.innerHTML=heatHtml(); }
+function renderLB(){
+  const el=$('#lbBox');
+  if(el){
+    const old={}, oldSc={}; el.querySelectorAll('[data-id]').forEach(r=>{old[r.dataset.id]=r.getBoundingClientRect().top; oldSc[r.dataset.id]=r.dataset.sc;});
+    const had=Object.keys(old).length>0;
+    el.innerHTML=lbHtml();
+    el.querySelectorAll('[data-id]').forEach(r=>{ const id=r.dataset.id;
+      try{
+        if(old[id]!=null){ const d=old[id]-r.getBoundingClientRect().top; if(Math.abs(d)>1) r.animate([{transform:`translateY(${d}px)`},{transform:'none'}],{duration:600,easing:'cubic-bezier(.2,.8,.2,1)'});
+          if(oldSc[id]!==r.dataset.sc){ const s=r.querySelector('.sc'); s&&s.animate([{transform:'scale(1.5)',color:'#21c07a'},{transform:'none'}],{duration:800,easing:'ease-out'}); } }
+        else if(had) r.animate([{opacity:0,transform:'translateX(24px)'},{opacity:1,transform:'none'}],{duration:450});
+      }catch(e){}
+    });
+  }
+  const h=$('#heat'); if(h) h.innerHTML=heatHtml();
+}
 function heatHtml(){
   const s=S.mp.session, ps=ranked(); if(!ps.length) return '<div class="hint">Aucun joueur.</div>';
   const head=s.qids.map((_,i)=>`<th>${i+1}</th>`).join('');
-  const rows=ps.map(p=>`<tr><td class="n">${esc(p.name)}</td>${s.qids.map((_,i)=>{const x=p.answers&&p.answers[i];return `<td><span class="dot ${x?(x.ok?'g':'r'):''}"></span></td>`}).join('')}<td><b>${p.nCorrect||0}</b></td></tr>`).join('');
+  const rows=ps.map(p=>`<tr><td class="n">${esc(p.avatar||'')} ${esc(p.name)}</td>${s.qids.map((_,i)=>{const x=p.answers&&p.answers[i];return `<td><span class="dot ${x?(x.ok?'g':'r'):''}"></span></td>`}).join('')}<td><b>${p.nCorrect||0}</b></td></tr>`).join('');
   const pct=s.qids.map((_,i)=>{let a=0,ok=0;ps.forEach(p=>{const x=p.answers&&p.answers[i];if(x){a++;if(x.ok)ok++}});return `<td class="hint">${a?Math.round(ok/a*100)+'%':''}</td>`}).join('');
   return `<table><tr><th></th>${head}<th>✓</th></tr>${rows}<tr><td class="n hint">% juste</td>${pct}<td></td></tr></table>`;
 }
@@ -648,16 +713,28 @@ function softRender(){ // re-render main game area only when the phase/question 
 }
 
 /* Final */
+function finalTableHtml(){
+  const s=S.mp.session, ps=ranked();
+  return ps.map((p,k)=>`<div class="lbrow ${p.id===pid?'me':''}"><div class="rk">${k+1}</div>${avHtml(p)}<div><div class="nm">${esc(p.name)}</div><div class="sub">${p.nCorrect||0}/${s.qids.length} bonnes réponses · ${Math.round((p.nCorrect||0)/s.qids.length*100)}%</div></div><div class="sc">${p.score||0}</div></div>`).join('');
+}
 function viewFinal(){
   const m=S.mp; if(!m) return viewHome();
   const s=m.session, ps=ranked(), top=ps.slice(0,3);
-  const pod=[1,0,2].filter(k=>top[k]).map(k=>`<div class="pod"><div style="font-weight:700">${esc(top[k].name)}</div><div class="hint">${top[k].score||0} pts</div><div class="blk p${k+1}">${k+1}</div></div>`).join('');
-  const table=ps.map((p,k)=>`<div class="lbrow ${p.id===pid?'me':''}"><div class="rk">${k+1}</div><div><div class="nm">${esc(p.name)}</div><div class="sub">${p.nCorrect||0}/${s.qids.length} bonnes réponses · ${Math.round((p.nCorrect||0)/s.qids.length*100)}%</div></div><div class="sc">${p.score||0}</div></div>`).join('');
+  const delays={2:0.6,1:1.9,0:3.3};
+  const heights={0:150,1:110,2:80};
+  const pod=[1,0,2].filter(k=>top[k]).map(k=>`<div class="pod ${k===0?'first':''}" style="--d:${delays[k]}s"><div class="pwho">${avHtml(top[k],'big')}<div style="font-weight:700">${esc(top[k].name)}</div><div class="hint">${top[k].score||0} pts</div></div><div class="blk p${k+1}" style="height:${heights[k]}px">${k+1}</div></div>`).join('');
   const dists=s.qids.map((_,i)=>distFor(i));
   const mine=m.plays?resultsBlock({title:'📋 Ta correction',score:m.local.score||0,res:summarize(s.qids,m.local.answers||{}),qids:s.qids,answers:m.local.answers||{},seed:s.seed,dists}):'';
-  return `<div class="card center"><h1 style="margin:0">🏆 Classement final</h1><div class="podium">${pod}</div></div>
-   <div class="two mt"><div>${mine||`<div class="card"><h3 style="margin-top:0">Résultats par question</h3><div class="heat">${heatHtml()}</div></div>`}</div><div class="card lb"><h3 style="margin-top:0">Tous les joueurs</h3>${table}</div></div>
-   <div class="row mt"><button class="btn" id="homeBtn">Retour à l'accueil</button></div>`;
+  return `<div class="card center"><h1 style="margin:0">🏆 Classement final</h1><div class="drum" id="drum">Roulement de tambour… 🥁</div><div class="podium">${pod}</div></div>
+   <div class="two mt reveal-late" style="--d:4.4s"><div>${mine||`<div class="card"><h3 style="margin-top:0">Résultats par question</h3><div class="heat">${heatHtml()}</div></div>`}</div><div class="card lb"><h3 style="margin-top:0">Tous les joueurs</h3><div id="finalTable">${finalTableHtml()}</div></div></div>
+   <div class="row mt reveal-late" style="--d:4.6s"><button class="btn" id="homeBtn">Retour à l'accueil</button></div>`;
+}
+function playFinale(){
+  const m=S.mp; if(!m) return; const key='fin-'+m.code; if(playFinale.done===key) return; playFinale.done=key;
+  const n=ranked().length;
+  const msgs=[[600,n>=3?'À la 3e place…':''],[1900,n>=2?'À la 2e place…':''],[3100,'Et le grand gagnant est…'],[3900,'🎉 Bravo à tous !']];
+  msgs.forEach(([ms,txt])=>setTimeout(()=>{ const d=$('#drum'); if(d&&txt) d.textContent=txt; },ms));
+  setTimeout(()=>confetti(4500),3900);
 }
 
 /* Bank browser */
@@ -682,7 +759,8 @@ function bind(){
     if((g==='solo'||g==='host')&&!S.name){ const e=$('#nameErr'); if(e) e.textContent='Entre ton nom avant de commencer.'; $('#nameInp')&&$('#nameInp').focus(); return; }
     if(g==='solo'){S.setupKind='solo';setView('setup')} else if(g==='host'){S.setupKind='host';setView('setup')} else setView(g);
   });
-  const ni=$('#nameInp'); if(ni){ ni.oninput=()=>{S.name=ni.value.trim().slice(0,24);lsSet('caia_name',S.name);$('#who').innerHTML=S.name?`<span class="pill">👤 ${esc(S.name)}</span>`:''} }
+  document.querySelectorAll('[data-av]').forEach(b=>b.onclick=()=>{ S.avatar=b.dataset.av; lsSet('caia_avatar',S.avatar); document.querySelectorAll('[data-av]').forEach(x=>x.classList.toggle('on',x===b)); $('#who').innerHTML=S.name?`<span class="pill">${esc(S.avatar)} ${esc(S.name)}</span>`:''; });
+  const ni=$('#nameInp'); if(ni){ ni.oninput=()=>{S.name=ni.value.trim().slice(0,24);lsSet('caia_name',S.name);$('#who').innerHTML=S.name?`<span class="pill">${esc(S.avatar)} ${esc(S.name)}</span>`:''} }
   bindSeg('paceSeg',v=>S.cfg.pace=v); bindSeg('modeSeg',v=>S.cfg.mode=v); bindSeg('minSeg',v=>S.cfg.minutes=+v); bindSeg('hpSeg',v=>S.cfg.hostPlays=v==='1');
   bindSeg('bankSeg',v=>S.bank.topic=v);
   document.querySelectorAll('[data-topic]').forEach(b=>b.onclick=()=>{saveName();const t=b.dataset.topic,a=S.cfg.topics;S.cfg.topics=a.includes(t)?a.filter(x=>x!==t):[...a,t];render()});
@@ -700,6 +778,8 @@ function bind(){
   const bs=$('#bankSearch'); if(bs){ bs.oninput=()=>{S.bank.q=bs.value; const pos=bs.selectionStart; render(); const n=$('#bankSearch'); n.focus(); n.setSelectionRange(pos,pos);} }
   document.querySelectorAll('[data-show]').forEach(b=>b.onclick=()=>{S.bank.show[b.dataset.show]=true;render()});
   if(S.view==='lobby') renderLobbyList();
+  if(S.view==='final') playFinale();
+  if(S.view==='soloResult' && S.solo && !S.solo.celebrated){ S.solo.celebrated=true; if(summarize(S.solo.qids,S.solo.answers).pct>=70) setTimeout(()=>confetti(3500),300); }
   if(S.view==='game'){ lastKey=''; bindGame(); }
   if(S.view==='solo') document.querySelectorAll('[data-opt]').forEach(b=>b.onclick=()=>soloAnswer(+b.dataset.opt));
 }
